@@ -48,12 +48,14 @@ def error_tokens():
     return specific response. A GET returns the current setup.
     """
     if flask.request.method in ('POST', 'PUT'):
-        configuration = flask.request.get_json(force=True, silent=True)
+        configuration = flask.request.get_json(force=True)#, silent=True)
         if not configuration:
-            return http.HTTPStatus.BAD_REQUEST, 'No (or empty) JSON data found'
+            flask.abort(400, 'No (or empty) JSON data found')
+            #return http.HTTPStatus.BAD_REQUEST, 'No (or empty) JSON data found'
 
         if not isinstance(configuration, list):
-            return http.HTTPStatus.BAD_REQUEST, 'Expected a list'
+            flask.abort(400, 'Expected a list')
+            #return http.HTTPStatus.BAD_REQUEST, 'Expected a list'
 
         for config in configuration:
             # We expect subscription_id, status, reason and optional timestamp
@@ -64,7 +66,8 @@ def error_tokens():
                 timestamp = config.get(KEY_TIMESTAMP)
 
             except KeyError as ex:
-                return http.HTTPStatus.BAD_REQUEST, 'Missing key {}'.format(ex)
+                flask.abort(400, 'Missing key {}'.format(ex))
+                #return http.HTTPStatus.BAD_REQUEST, 'Missing key {}'.format(ex)
 
             ERRORS_TO_RETURN[subscription_id] = ErrorConfig(
                 status, reason, timestamp
@@ -106,7 +109,7 @@ def push_to_device():
     success = 0
     failure = 0
     for device_token in device_tokens:
-        print('push_to_device(\'{}\''.format(device_token))
+        print(('push_to_device(\'{}\''.format(device_token)))
 
         error = ERRORS_TO_RETURN.get(device_token)
         if error is None:
@@ -133,7 +136,7 @@ def push_to_device():
                 # consistent key case.
                 dict(
                     (key.lower(), str(value))
-                    for key, value in flask.request.headers.items()
+                    for key, value in list(flask.request.headers.items())
                 ),
                 request_data,
                 response.status_code,
@@ -152,7 +155,7 @@ def activity():
         dict(
             logs=[
                 dict(
-                    zip(ACTIVITY_RECORD_FIELDS, activity)
+                    list(zip(ACTIVITY_RECORD_FIELDS, activity))
                 )
                 for activity in ACTIVITY
             ]
@@ -162,9 +165,9 @@ def activity():
 
 @app.before_request
 def before_request():
-    print(
+    print((
         '{}, {}'.format(
             flask.request.method,
             flask.request.url,
         )
-    )
+    ))

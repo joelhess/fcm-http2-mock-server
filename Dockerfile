@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:17.04
 
 RUN apt-get update && \
     apt-get install -y python3 python3-pip
@@ -10,5 +10,5 @@ ADD mock-fcm-http2-server.py /server
 ADD asyncio-http2-wsgi-server.py /server
 ADD requirements.txt /server
 
-EXPOSE 443 2197
+EXPOSE 443
 ENTRYPOINT ["/server/asyncio-http2-wsgi-server.py", "mock-fcm-http2-server:app"]
